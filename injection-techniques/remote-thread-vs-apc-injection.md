@@ -50,7 +50,7 @@ QueueUserAPC((PAPCFUNC)remoteShellcode, hThread, NULL);
 
 🕵️ Detection Logic
 
-**Shared Indicators**
+__Shared Indicators__
 
 Remote memory allocation + writes
 
