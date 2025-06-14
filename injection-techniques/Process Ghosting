@@ -1,0 +1,42 @@
+🚀 What is Process Ghosting?
+
+Process Ghosting is a stealthy process injection technique that allows malware to execute without leaving a usable file on disk for security tools to analyze. It leverages how Windows handles file deletion and process creation, making it harder for traditional antivirus (AV) and some EDR solutions to detect.
+
+⚙️ How does Process Ghosting work?
+
+1️⃣ The attacker writes a malicious executable file to disk.
+
+2️⃣ Before starting the process, the attacker marks the file for deletion (using DeleteFile or by creating it in a way that it is already marked for deletion).
+
+3️⃣ The attacker uses this file to create a process (via low-level API like NtCreateProcessEx).
+
+4️⃣ Windows maps the executable content into memory to prepare the process image.
+
+5️⃣ The file entry on disk is deleted, but the process runs from the memory-mapped content.
+
+✅ The file is gone from the disk — AV cannot scan it.
+✅ The process runs from memory sections created during mapping.
+✅ Security tools that rely only on scanning files on disk will miss it.
+
+📌 Detection Use Cases
+
+Orphaned image detection: Identify processes that have no corresponding file on disk at their image path.
+
+File delete + process create correlation: Alert on file deletions that occur just before process creation (e.g., within 5-10 seconds).
+
+Memory image integrity check: Flag processes where the in-memory image doesn’t match any on-disk executable hashes.
+
+Suspicious timing patterns: Detect rapid file creation + deletion + process creation sequences.
+
+Example KQL (Microsoft Sentinel)
+
+let procCreate = SecurityEvent
+| where EventID == 4688
+| project TimeGenerated, NewProcessName, SubjectUserName, _ResourceId;
+let fileDel = SecurityEvent
+| where EventID == 4660 // file delete
+| project TimeGenerated, ObjectName, SubjectUserName, _ResourceId;
+procCreate
+| join kind=inner (fileDel) on SubjectUserName, _ResourceId
+| where fileDel.TimeGenerated between (procCreate.TimeGenerated - 5s .. procCreate.TimeGenerated + 5s)
+
