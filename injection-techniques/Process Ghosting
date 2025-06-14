@@ -1,4 +1,4 @@
-🚀 What is Process Ghosting?
+What is Process Ghosting ?
 
 Process Ghosting is a stealthy process injection technique that allows malware to execute without leaving a usable file on disk for security tools to analyze. It leverages how Windows handles file deletion and process creation, making it harder for traditional antivirus (AV) and some EDR solutions to detect.
 
